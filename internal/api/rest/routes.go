@@ -1,6 +1,7 @@
 package rest
 
 const (
-	health  = "/health"
-	metrics = "/metrics"
+	healthPath  = "/health"
+	metricsPath = "/metrics"
+	shortenPath = "/api/v1/shorten"
 )

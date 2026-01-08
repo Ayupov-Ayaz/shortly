@@ -5,6 +5,7 @@ go 1.25.0
 require github.com/caarlos0/env/v11 v11.3.1
 
 require (
+	github.com/bwmarrin/snowflake v0.3.0
 	github.com/gofiber/fiber/v3 v3.0.0-rc.3
 	github.com/joho/godotenv v1.5.1
 )

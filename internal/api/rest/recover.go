@@ -18,10 +18,10 @@ func setupRecovery(
 	skipRecovery := func(fCtx fiber.Ctx) bool {
 		switch fCtx.Path() {
 		//we need to panic and restart app here
-		case health:
+		case healthPath:
 			return true
 		//we need to log this panic in grafana
-		case metrics:
+		case metricsPath:
 			return true
 		default:
 			return false
