@@ -1,8 +1,10 @@
-package main
+package api
 
 import (
 	"flag"
+	"fmt"
 
+	"github.com/ayupov-ayaz/shortly/internal/api"
 	"github.com/ayupov-ayaz/shortly/internal/api/rest"
 	"github.com/ayupov-ayaz/shortly/internal/config"
 )
@@ -12,27 +14,36 @@ const (
 	prefix  = "SHORTLY_"
 )
 
-func main() {
+func Run() error {
 	env := parseEnvFlag()
 	envFileName := choseEnvFile(env)
 
 	cfg, err := config.FromEnv(envFileName, prefix)
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("parsing env: %w", err)
 	}
 
-	srv, err := rest.New(rest.Config{
-		AppName: appName + ":" + env,
-		Env:     env,
-		Domains: cfg.APP.Domains,
+	app, err := rest.New(rest.Config{
+		AppName:          appName + ":" + env,
+		Env:              env,
+		Domains:          cfg.APP.CORS.Domains,
+		PanicLogFilePath: cfg.APP.PanicFile,
 	})
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("creating rest server: %w", err)
 	}
 
-	if err = srv.Listen(cfg.APP.ServerPort()); err != nil {
-		panic(err)
+	err = api.Configure(app, cfg)
+	if err != nil {
+		return fmt.Errorf("configuring api: %w", err)
 	}
+
+	// todo: add graceful shutdown
+	if err = app.Listen(cfg.APP.ListenAddr()); err != nil {
+		return fmt.Errorf("starting server: %w", err)
+	}
+
+	return nil
 }
 
 func parseEnvFlag() string {
