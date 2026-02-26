@@ -3,13 +3,12 @@ package rest
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"runtime/debug"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/recover"
-
-	"github.com/ayupov-ayaz/shortly/internal/config"
 )
 
 func setupRecovery(
@@ -36,15 +35,6 @@ func setupRecovery(
 }
 
 func logStackTraceHandler(logFile *os.File) func(fCtx fiber.Ctx, e any) {
-	if logFile == nil {
-		return func(fCtx fiber.Ctx, e any) { //todo:use zerolog
-			fmt.Printf("⚠️  recovered after panic!\n")
-			fmt.Printf("   URL: %s %s\n", fCtx.Method(), fCtx.Path())
-			fmt.Printf("   error: %v\n", e)
-			fmt.Printf("   stack:\n%s\n", debug.Stack())
-		}
-	}
-
 	return func(fCtx fiber.Ctx, e any) {
 		logFile.WriteString("================ PANIC ================\n")
 		logFile.WriteString("Time: " + time.Now().Format(time.RFC3339) + "\n")
@@ -56,27 +46,24 @@ func logStackTraceHandler(logFile *os.File) func(fCtx fiber.Ctx, e any) {
 	}
 }
 
-func panicLogFile(env string) (*os.File, error) {
-	var logFile *os.File
-
-	if env == config.EnvProduction {
-		return createLogFile()
-	}
-
-	// empty file
-	return logFile, nil
-}
-
-func createLogFile() (*os.File, error) {
+func createPanicLogFile(filePath string) (*os.File, error) {
 	const (
-		fileName = "logs/panic.log"
-		mods     = os.O_APPEND | os.O_CREATE | os.O_WRONLY
-		perm     = 0644
+		mods = os.O_APPEND | os.O_CREATE | os.O_WRONLY
+		perm = 0644
 	)
 
-	file, err := os.OpenFile(fileName, mods, perm)
+	if !filepath.IsAbs(filePath) {
+		wd, err := os.Getwd()
+		if err != nil {
+			return nil, fmt.Errorf("getting work dir: %w", err)
+		}
+
+		filePath = filepath.Join(wd, filePath)
+	}
+
+	file, err := os.OpenFile(filePath, mods, perm)
 	if err != nil {
-		return nil, fmt.Errorf("opening %s file: %w", fileName, err)
+		return nil, fmt.Errorf("opening %s file: %w", filePath, err)
 	}
 
 	return file, nil

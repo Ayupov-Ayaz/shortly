@@ -1,12 +1,15 @@
 package rest
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
 )
 
 type Config struct {
+	PanicLogFilePath string
+
 	AppName string
 	Env     string
 	Domains []string
@@ -15,9 +18,9 @@ type Config struct {
 func New(
 	cfg Config,
 ) (*fiber.App, error) {
-	logFile, err := panicLogFile(cfg.Env)
+	panicLogFile, err := createPanicLogFile(cfg.PanicLogFilePath)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("creating log file for panics: %w", err)
 	}
 
 	app := fiber.New(fiber.Config{
@@ -28,8 +31,8 @@ func New(
 		ErrorHandler: errorHandler,
 	})
 
-	_ = app.Use(
-		setupRecovery(logFile),
+	app.Use(
+		setupRecovery(panicLogFile),
 		setupCors(cfg.Env, cfg.Domains),
 	)
 
