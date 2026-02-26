@@ -23,16 +23,20 @@ func setupCors(
 			fiber.HeaderAccept,
 			fiber.HeaderAuthorization,
 		},
+		AllowOrigins: domains,
 	}
+
+	const (
+		devMaxAge  = 60 * 60      // 1h
+		prodMaxAge = 60 * 60 * 24 // 24h
+	)
 
 	switch env {
 	case config.EnvDevelopment:
-		cfg.MaxAge = 60 * 60         // 1h
+		cfg.MaxAge = devMaxAge
 		cfg.AllowCredentials = false // for use "*"
-		cfg.AllowOrigins = []string{"*"}
 	case config.EnvProduction:
-		cfg.AllowOrigins = domains
-		cfg.MaxAge = 60 * 60 * 24 // 24h
+		cfg.MaxAge = prodMaxAge
 		cfg.AllowCredentials = true
 	}
 
