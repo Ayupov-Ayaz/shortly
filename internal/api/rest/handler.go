@@ -6,14 +6,14 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/ayupov-ayaz/shortly/internal/entity"
-	"github.com/ayupov-ayaz/shortly/internal/service/shorten"
+	"github.com/ayupov-ayaz/shortly/internal/service/shortener"
 )
 
 type URLHandler struct {
-	srv shorten.Shortener
+	srv shortener.Shortener
 }
 
-func NewURLHandler(srv shorten.Shortener) *URLHandler {
+func NewURLShortenerHandler(srv shortener.Shortener) *URLHandler {
 	return &URLHandler{
 		srv: srv,
 	}
@@ -24,7 +24,7 @@ func (h *URLHandler) RegisterRouter(router fiber.Router) {
 }
 
 func (h *URLHandler) shortenURL(fCtx fiber.Ctx) error {
-	req := new(entity.CreateURLRequest)
+	req := new(entity.ShortURLRequest)
 
 	err := fCtx.Bind().JSON(req)
 	if err != nil {
@@ -38,10 +38,10 @@ func (h *URLHandler) shortenURL(fCtx fiber.Ctx) error {
 		return fmt.Errorf("validate req: %w", err)
 	}
 
-	resp, err := h.srv.CreateShortURL(fCtx.Context(), req)
+	resp, err := h.srv.ShortenURL(fCtx.Context(), req)
 	if err != nil {
 		// todo: log
-		return fmt.Errorf("creating short url: %w", err)
+		return fmt.Errorf("shortening url: %w", err)
 	}
 
 	fCtx.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)

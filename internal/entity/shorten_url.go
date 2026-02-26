@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-type CreateURLRequest struct {
+type ShortURLRequest struct {
 	URL       string        `json:"url"`
 	CustomKey string        `json:"customKey,omitempty"`
 	Expire    time.Duration `json:"expiredAt,omitempty"`
@@ -20,7 +20,7 @@ type URLResponse struct {
 	ExpiresAt   time.Time `json:"expiresAt"`
 }
 
-func (c *CreateURLRequest) Validate() error {
+func (c *ShortURLRequest) Validate() error {
 	if strings.TrimSpace(c.URL) == "" {
 		return ErrURLIsEmpty
 	}
@@ -33,7 +33,7 @@ func (c *CreateURLRequest) Validate() error {
 	return nil
 }
 
-func NewCreateURLResponse(
+func NewURLResponse(
 	originalURL, shortURL string,
 	createdAt, expiresAt time.Time,
 ) *URLResponse {

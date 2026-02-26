@@ -1,4 +1,4 @@
-package shorten
+package shortener
 
 import (
 	"context"
@@ -12,13 +12,13 @@ import (
 )
 
 type Shortener interface {
-	CreateShortURL(
+	ShortenURL(
 		ctx context.Context,
-		req *entity.CreateURLRequest,
+		req *entity.ShortURLRequest,
 	) (*entity.URLResponse, error)
 }
 
-type URLShorter struct {
+type URLShortener struct {
 	storage   storage.Storage
 	generator id.Generator
 
@@ -26,9 +26,23 @@ type URLShorter struct {
 	defaultExpire time.Duration
 }
 
-func (u *URLShorter) CreateShortURL(
+func New(
+	storage storage.Storage,
+	generator id.Generator,
+	baseURL *url.URL,
+	defaultExpire time.Duration,
+) *URLShortener {
+	return &URLShortener{
+		storage:       storage,
+		generator:     generator,
+		baseURL:       baseURL,
+		defaultExpire: defaultExpire,
+	}
+}
+
+func (u *URLShortener) ShortenURL(
 	ctx context.Context,
-	req *entity.CreateURLRequest,
+	req *entity.ShortURLRequest,
 ) (*entity.URLResponse, error) {
 	// if original url already exists, return it
 	resp, err := u.storage.GetByOrigin(ctx, req.URL)
@@ -43,7 +57,7 @@ func (u *URLShorter) CreateShortURL(
 	now := time.Now().UTC()
 	expireAt := u.calculateExpireAt(now, req.Expire)
 
-	res := entity.NewCreateURLResponse(
+	res := entity.NewURLResponse(
 		req.URL,
 		shortURL.String(),
 		now,
@@ -58,7 +72,7 @@ func (u *URLShorter) CreateShortURL(
 	return res, nil
 }
 
-func (u *URLShorter) calculateExpireAt(
+func (u *URLShortener) calculateExpireAt(
 	now time.Time,
 	expire time.Duration,
 ) time.Time {
