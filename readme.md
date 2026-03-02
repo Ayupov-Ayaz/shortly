@@ -1,28 +1,6 @@
 # Shortly
 Сервис по обрезке ссылок + аналитика переходов
 
-
-архитектура проекта: 
-```
-shortly/
-├── cmd/
-│   └── api/          # Точка входа main.go
-├── internal/
-│   ├── config/       # Конфигурация (viper или env)
-│   ├── entity/       # Сущности (Url, Click)
-│   ├── repository/   # Интерфейсы и реализация под PostgreSQL
-│   │   └── postgres/
-│   ├── service/      # Бизнес-логика
-│   ├── transport/    # HTTP-обработчики
-│   │   └── rest/
-│   └── pkg/          # Вспомогательные пакеты (hasher, etc.)
-├── migrations/       # SQL-миграции (golang-migrate)
-├── proto/            # .proto файлы (позже)
-├── docker-compose.yml
-├── Dockerfile.api
-└── Makefile
-```
-
 # План выполнения
 - [x] Спроектировать архитектуру проека.
 - [x] Создать рабочий docker-compose.yaml с PostgreSQL и Redis 
@@ -33,10 +11,13 @@ shortly/
 - [x] Разработать сервисный слой для создания коротких ссылок
 - [x] Реализовать генератор коротких кодов на основе snowflake + base62
 - [x] Написать handler для эндпоинта /v1/shorten
-- [ ] OpenAPI
+- [x] OpenAPI
+- [x] Graceful shutdown
+- [x] liveness
+- [x] Создать интерфейсы storage
+- [ ] unit tests
 - [ ] Подключить линтеры
-- [ ] Graceful shutdown
-- [ ] Создать интерфейсы хранищ (storage interfaces)
+- [ ] readiness
 - [ ] Подключение к PostgreSQL
 - [ ] Миграции к PostgreSQL
 - [ ] CRUD операции с PostgreSQL
@@ -50,6 +31,7 @@ shortly/
 - [ ] Метрики
 - [ ] Trace запросов
 - [ ] Интеграционные тесты
+- [ ] rate limit
 - [ ] Dockerfile
 - [ ] Github actions (ci/cd)
 - [ ] deploy
