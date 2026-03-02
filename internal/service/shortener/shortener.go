@@ -6,20 +6,22 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/ayupov-ayaz/shortly/internal/entity"
+	"github.com/ayupov-ayaz/shortly/internal/api/gen"
+	"github.com/ayupov-ayaz/shortly/internal/repository"
 	"github.com/ayupov-ayaz/shortly/internal/service/id"
-	"github.com/ayupov-ayaz/shortly/internal/storage"
 )
 
 type Shortener interface {
 	ShortenURL(
 		ctx context.Context,
-		req *entity.ShortURLRequest,
-	) (*entity.URLResponse, error)
+		req gen.CreateURLRequest,
+	) (*gen.CreateURLResponse, error)
 }
 
+var _ Shortener = (*URLShortener)(nil)
+
 type URLShortener struct {
-	storage   storage.Storage
+	storage   repository.Repository
 	generator id.Generator
 
 	baseURL       *url.URL //todo: use baseURL
@@ -27,7 +29,7 @@ type URLShortener struct {
 }
 
 func New(
-	storage storage.Storage,
+	storage repository.Repository,
 	generator id.Generator,
 	baseURL *url.URL,
 	defaultExpire time.Duration,
@@ -42,11 +44,11 @@ func New(
 
 func (u *URLShortener) ShortenURL(
 	ctx context.Context,
-	req *entity.ShortURLRequest,
-) (*entity.URLResponse, error) {
+	req gen.CreateURLRequest,
+) (*gen.CreateURLResponse, error) {
 	// if original url already exists, return it
-	resp, err := u.storage.GetByOrigin(ctx, req.URL)
-	if err != nil && !errors.Is(err, storage.ErrNotFound) {
+	resp, err := u.storage.GetByOrigin(ctx, req.Url)
+	if err != nil && !errors.Is(err, repository.ErrNotFound) {
 		return nil, err
 	} else if resp != nil {
 		return resp, nil
@@ -54,15 +56,12 @@ func (u *URLShortener) ShortenURL(
 
 	shortURL := u.baseURL.JoinPath(u.generator.Generate())
 
-	now := time.Now().UTC()
-	expireAt := u.calculateExpireAt(now, req.Expire)
-
-	res := entity.NewURLResponse(
-		req.URL,
-		shortURL.String(),
-		now,
-		expireAt,
-	)
+	res := &gen.CreateURLResponse{
+		CreatedAt:   time.Now(),
+		ExpiresAt:   req.ExpiresAt,
+		OriginalURL: req.Url,
+		ShortURL:    shortURL.String(),
+	}
 
 	err = u.storage.Save(ctx, res)
 	if err != nil {
@@ -70,15 +69,4 @@ func (u *URLShortener) ShortenURL(
 	}
 
 	return res, nil
-}
-
-func (u *URLShortener) calculateExpireAt(
-	now time.Time,
-	expire time.Duration,
-) time.Time {
-	if expire == 0 {
-		expire = u.defaultExpire
-	}
-
-	return now.Add(expire)
 }

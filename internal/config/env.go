@@ -7,6 +7,11 @@ import (
 	"github.com/joho/godotenv"
 )
 
+const (
+	EnvDevelopment = "development"
+	EnvProduction  = "production"
+)
+
 func FromEnv(fileName, prefix string) (*Config, error) {
 	err := loadDotEnvFile(fileName)
 	if err != nil {
