@@ -6,6 +6,8 @@ import (
 
 type APP struct {
 	Shortener Shortener `envPrefix:"SHORTENER_"`
+	// timeout for business logic
+	Timeout time.Duration `env:"TIMEOUT" envDefault:"4s"`
 	// todo: analytics
 	// todo: redirect
 }

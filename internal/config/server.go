@@ -6,9 +6,10 @@ import (
 )
 
 type Server struct {
-	Host    string  `env:"HOST" envDefault:"localhost"`
-	Port    int     `env:"PORT" envDefault:"9000"`
-	Timeout Timeout `envPrefix:"TIMEOUT_"`
+	Host         string   `env:"HOST" envDefault:"localhost"`
+	AllowOrigins []string `env:"ALLOW_ORIGINS" validate:"required,min=1"`
+	Port         int      `env:"PORT" envDefault:"9000"`
+	Timeout      Timeout  `envPrefix:"TIMEOUT_"`
 }
 
 func (cfg Server) BaseURL(env string) (*url.URL, error) {

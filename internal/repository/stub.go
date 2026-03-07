@@ -68,7 +68,7 @@ func (r *InMemoryRepository) Del(
 	shortURL string,
 ) error {
 	r.mu.Lock()
-	r.mu.Unlock()
+	defer r.mu.Unlock()
 
 	resp, ok := r.shortURLStore[shortURL]
 	if !ok {

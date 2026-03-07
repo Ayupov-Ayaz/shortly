@@ -31,5 +31,8 @@ func (h *Swagger) GetSwaggerUI(
 		return
 	}
 
-	writer.Write(data)
+	_, err = writer.Write(data)
+	if err != nil {
+		h.respWriter.SendInternalServerError(writer, err)
+	}
 }

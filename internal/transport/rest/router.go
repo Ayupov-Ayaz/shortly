@@ -6,39 +6,30 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
-
-	"github.com/ayupov-ayaz/shortly/internal/config"
 )
 
-type Config struct {
-	Env          string
-	LivenessPath string
+type RouterConfig struct {
+	AllowOrigins []string
 	Timeout      time.Duration
 }
 
-func NewServer(cfg Config) *chi.Mux {
-	router := chi.NewRouter()
+func NewRouter(cfg RouterConfig) *chi.Mux {
+	resp := chi.NewRouter()
 
-	router.Use(
+	resp.Use(
 		middleware.RequestID,
 		middleware.RealIP,
 		middleware.Logger,
 		middleware.Recoverer,
 		middleware.Timeout(cfg.Timeout),
-		middleware.Heartbeat(cfg.LivenessPath),
-		cors.Handler(corsOptions(cfg.Env)),
+		middleware.AllowContentType("application/json"),
+		cors.Handler(corsOptions(cfg.AllowOrigins)),
 	)
 
-	return router
+	return resp
 }
 
-func corsOptions(env string) cors.Options {
-	allowOrigins := []string{"https://*"}
-
-	if env == config.EnvDevelopment {
-		allowOrigins = append(allowOrigins, "http://*")
-	}
-
+func corsOptions(allowOrigins []string) cors.Options {
 	return cors.Options{
 		AllowedOrigins: allowOrigins,
 		AllowedMethods: []string{
@@ -47,7 +38,6 @@ func corsOptions(env string) cors.Options {
 		AllowedHeaders: []string{
 			"Accept", "Authorization", "Content-Type",
 		},
-		ExposedHeaders:   []string{},
 		AllowCredentials: true,
 		// todo: do i need to configure specific ttl for prod?
 		MaxAge: 60 * 5, // 5 min in seconds
