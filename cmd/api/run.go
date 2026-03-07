@@ -19,8 +19,7 @@ import (
 )
 
 const (
-	appName = "shortly"
-	prefix  = "SHORTLY_"
+	prefix = "SHORTLY_"
 )
 
 func Run() error {

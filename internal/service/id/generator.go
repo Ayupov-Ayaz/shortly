@@ -4,10 +4,6 @@ import (
 	"github.com/bwmarrin/snowflake"
 )
 
-type Generator interface {
-	Generate() string
-}
-
 type SnowflakeGenerator struct {
 	node *snowflake.Node
 }

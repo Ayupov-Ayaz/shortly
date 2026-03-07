@@ -8,7 +8,6 @@ import (
 
 	"github.com/ayupov-ayaz/shortly/internal/api/gen"
 	"github.com/ayupov-ayaz/shortly/internal/repository"
-	"github.com/ayupov-ayaz/shortly/internal/service/id"
 )
 
 type Shortener interface {
@@ -18,11 +17,15 @@ type Shortener interface {
 	) (*gen.CreateURLResponse, error)
 }
 
+type idGenerator interface {
+	Generate() string
+}
+
 var _ Shortener = (*URLShortener)(nil)
 
 type URLShortener struct {
 	storage   repository.Repository
-	generator id.Generator
+	generator idGenerator
 
 	baseURL       *url.URL //todo: use baseURL
 	defaultExpire time.Duration
@@ -30,7 +33,7 @@ type URLShortener struct {
 
 func New(
 	storage repository.Repository,
-	generator id.Generator,
+	generator idGenerator,
 	baseURL *url.URL,
 	defaultExpire time.Duration,
 ) *URLShortener {
