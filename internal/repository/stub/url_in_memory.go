@@ -14,7 +14,7 @@ type URLInMemoryRepository struct {
 	originToShortURL map[string]*gen.CreateURLResponse
 }
 
-func NewStubRepository() *URLInMemoryRepository {
+func NewInMemoryRepository() *URLInMemoryRepository {
 	return &URLInMemoryRepository{
 		shortURLStore:    make(map[string]*gen.CreateURLResponse),
 		originToShortURL: make(map[string]*gen.CreateURLResponse),

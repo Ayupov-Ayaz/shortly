@@ -6,7 +6,7 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"github.com/ayupov-ayaz/shortly/internal/config"
-	"github.com/ayupov-ayaz/shortly/internal/repository"
+	"github.com/ayupov-ayaz/shortly/internal/repository/stub"
 	"github.com/ayupov-ayaz/shortly/internal/service/id"
 	"github.com/ayupov-ayaz/shortly/internal/service/shortener"
 	"github.com/ayupov-ayaz/shortly/internal/transport/rest/handler"
@@ -28,7 +28,7 @@ func Configure(
 		return fmt.Errorf("parsing base url: %w", err)
 	}
 
-	shortenerSrv := shortener.New(repository.NewStubRepository(),
+	shortenerSrv := shortener.New(stub.NewInMemoryRepository(),
 		generator,
 		baseURL,
 		cfg.APP.ShortURLsTTL(),
