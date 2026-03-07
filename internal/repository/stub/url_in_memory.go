@@ -1,26 +1,27 @@
-package repository
+package stub
 
 import (
 	"context"
 	"sync"
 
 	"github.com/ayupov-ayaz/shortly/internal/api/gen"
+	"github.com/ayupov-ayaz/shortly/internal/repository"
 )
 
-type InMemoryRepository struct {
+type URLInMemoryRepository struct {
 	mu               sync.Mutex
 	shortURLStore    map[string]*gen.CreateURLResponse
 	originToShortURL map[string]*gen.CreateURLResponse
 }
 
-func NewStubRepository() *InMemoryRepository {
-	return &InMemoryRepository{
+func NewStubRepository() *URLInMemoryRepository {
+	return &URLInMemoryRepository{
 		shortURLStore:    make(map[string]*gen.CreateURLResponse),
 		originToShortURL: make(map[string]*gen.CreateURLResponse),
 	}
 }
 
-func (r *InMemoryRepository) Save(
+func (r *URLInMemoryRepository) Save(
 	ctx context.Context,
 	resp *gen.CreateURLResponse,
 ) error {
@@ -33,7 +34,7 @@ func (r *InMemoryRepository) Save(
 	return nil
 }
 
-func (r *InMemoryRepository) GetByOrigin(
+func (r *URLInMemoryRepository) GetByOrigin(
 	ctx context.Context,
 	originURL string,
 ) (*gen.CreateURLResponse, error) {
@@ -42,13 +43,13 @@ func (r *InMemoryRepository) GetByOrigin(
 
 	resp, ok := r.originToShortURL[originURL]
 	if !ok {
-		return nil, ErrNotFound
+		return nil, repository.ErrNotFound
 	}
 
 	return resp, nil
 }
 
-func (r *InMemoryRepository) GetByShortURL(
+func (r *URLInMemoryRepository) GetByShortURL(
 	ctx context.Context,
 	shortURL string,
 ) (*gen.CreateURLResponse, error) {
@@ -57,13 +58,13 @@ func (r *InMemoryRepository) GetByShortURL(
 
 	resp, ok := r.shortURLStore[shortURL]
 	if !ok {
-		return nil, ErrNotFound
+		return nil, repository.ErrNotFound
 	}
 
 	return resp, nil
 }
 
-func (r *InMemoryRepository) Del(
+func (r *URLInMemoryRepository) Del(
 	ctx context.Context,
 	shortURL string,
 ) error {
