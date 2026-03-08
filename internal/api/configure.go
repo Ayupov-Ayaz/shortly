@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/ayupov-ayaz/shortly/internal/config"
 	"github.com/ayupov-ayaz/shortly/internal/helper/environment"
@@ -36,11 +37,15 @@ func Configure(
 	server.SetPostgresCloser(pgxPool)
 
 	urlsRepository := postgres.NewURLsRepository(pgxPool)
+	now := func() time.Time {
+		return time.Now().UTC()
+	}
 
-	shortenerSrv := shortener.New(urlsRepository,
+	shortenerSrv := shortener.New(
+		urlsRepository,
 		generator,
 		baseURL,
-		cfg.APP.ShortURLsTTL(),
+		now,
 	)
 
 	configureShortener(respWriter, server.router, shortenerSrv)

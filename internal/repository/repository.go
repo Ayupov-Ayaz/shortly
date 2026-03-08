@@ -3,25 +3,25 @@ package repository
 import (
 	"context"
 
-	"github.com/ayupov-ayaz/shortly/internal/api/gen"
+	"github.com/ayupov-ayaz/shortly/internal/entity"
 )
 
 type Repository interface {
 	// create originalURL and shortURL during expire
 	Create(
 		ctx context.Context,
-		req *gen.CreateURLResponse,
+		req entity.URL,
 	) error
 	// get by origin url
 	GetByOrigin(
 		ctx context.Context,
 		shortURL string,
-	) (*gen.CreateURLResponse, error)
+	) (*entity.URL, error)
 	// get by short url
 	GetByShortURL(
 		ctx context.Context,
 		originalURL string,
-	) (*gen.CreateURLResponse, error)
+	) (*entity.URL, error)
 	// delete url
 	Delete(
 		ctx context.Context,
@@ -30,6 +30,6 @@ type Repository interface {
 	//
 	Update(
 		ctx context.Context,
-		req *gen.CreateURLResponse,
+		req entity.URL,
 	) error
 }

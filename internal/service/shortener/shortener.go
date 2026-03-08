@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/ayupov-ayaz/shortly/internal/api/gen"
+	"github.com/ayupov-ayaz/shortly/internal/entity"
 	"github.com/ayupov-ayaz/shortly/internal/repository"
 )
 
@@ -27,21 +28,21 @@ type URLShortener struct {
 	storage   repository.Repository
 	generator idGenerator
 
-	baseURL       *url.URL //todo: use baseURL
-	defaultExpire time.Duration
+	baseURL *url.URL
+	now     func() time.Time
 }
 
 func New(
 	storage repository.Repository,
 	generator idGenerator,
 	baseURL *url.URL,
-	defaultExpire time.Duration,
+	now func() time.Time,
 ) *URLShortener {
 	return &URLShortener{
-		storage:       storage,
-		generator:     generator,
-		baseURL:       baseURL,
-		defaultExpire: defaultExpire,
+		storage:   storage,
+		generator: generator,
+		baseURL:   baseURL,
+		now:       now,
 	}
 }
 
@@ -50,28 +51,40 @@ func (u *URLShortener) ShortenURL(
 	req gen.CreateURLRequest,
 ) (*gen.CreateURLResponse, error) {
 	// if original url already exists, return it
-	resp, err := u.storage.GetByOrigin(ctx, req.Url)
+	entityURL, err := u.storage.GetByOrigin(ctx, req.Url)
 	if err != nil && !errors.Is(err, repository.ErrNotFound) {
 		return nil, err
-	} else if resp != nil {
-		return resp, nil
+	} else if entityURL != nil {
+		return castEntityToAPIResp(*entityURL, u.baseURL), nil
 	}
 
 	shortCode := u.generator.Generate()
 
-	res := &gen.CreateURLResponse{
-		CreatedAt:   time.Now(),
-		ExpiresAt:   req.ExpiresAt,
+	shortURL := entity.URL{
 		OriginalURL: req.Url,
-		ShortURL:    shortCode,
+		ShortCode:   shortCode,
+		CreatedAt:   u.now(),
+		ExpiresAt:   req.ExpiresAt,
 	}
 
-	// todo: use entity
-	err = u.storage.Create(ctx, res)
+	err = u.storage.Create(ctx, shortURL)
 	if err != nil {
 		return nil, err
 	}
 
-	// todo: join base url and short code
+	res := castEntityToAPIResp(shortURL, u.baseURL)
+
 	return res, nil
+}
+
+func castEntityToAPIResp(
+	url entity.URL,
+	baseURL *url.URL,
+) *gen.CreateURLResponse {
+	return &gen.CreateURLResponse{
+		OriginalURL: url.OriginalURL,
+		ShortURL:    baseURL.JoinPath(url.ShortCode).String(),
+		CreatedAt:   url.CreatedAt,
+		ExpiresAt:   url.ExpiresAt,
+	}
 }

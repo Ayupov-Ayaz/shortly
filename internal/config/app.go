@@ -14,9 +14,4 @@ type APP struct {
 
 type Shortener struct {
 	NodeID int64 `env:"NODE_ID" envDefault:"1"`
-	TTL    int64 `env:"URL_TTL" envDefault:"86400"` // 24h in seconds
-}
-
-func (cfg APP) ShortURLsTTL() time.Duration {
-	return time.Duration(cfg.Shortener.TTL) * time.Second
 }

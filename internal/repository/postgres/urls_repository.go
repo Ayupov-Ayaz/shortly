@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ayupov-ayaz/shortly/internal/api/gen"
+	"github.com/ayupov-ayaz/shortly/internal/entity"
 )
 
 type URLsRepository struct {
@@ -18,14 +18,18 @@ func NewURLsRepository(pgx *ConnPool) *URLsRepository {
 }
 
 func (r *URLsRepository) Create(
-	ctx context.Context, req *gen.CreateURLResponse,
+	ctx context.Context, shortURL entity.URL,
 ) error {
 	const query = `
 	INSERT INTO urls (original_url, short_code, expires_at, created_at, active)
 	VALUES ($1, $2, $3, $4, $5)
 	`
 	_, err := r.pgx.Exec(ctx, query,
-		req.OriginalURL, req.ShortURL, req.ExpiresAt, req.CreatedAt, active)
+		shortURL.OriginalURL,
+		shortURL.ShortCode,
+		shortURL.ExpiresAt,
+		shortURL.CreatedAt,
+		active)
 	if err != nil {
 		return fmt.Errorf("pgx.Exec: %w", err)
 	}
@@ -35,13 +39,13 @@ func (r *URLsRepository) Create(
 
 func (r *URLsRepository) GetByOrigin(
 	ctx context.Context, shortURL string,
-) (*gen.CreateURLResponse, error) {
+) (*entity.URL, error) {
 	return nil, nil
 }
 
 func (r *URLsRepository) GetByShortURL(
 	ctx context.Context, originalURL string,
-) (*gen.CreateURLResponse, error) {
+) (*entity.URL, error) {
 	return nil, nil
 }
 
@@ -52,7 +56,7 @@ func (r *URLsRepository) Delete(
 }
 
 func (r *URLsRepository) Update(
-	ctx context.Context, req *gen.CreateURLResponse,
+	ctx context.Context, req entity.URL,
 ) error {
 	return nil
 }
