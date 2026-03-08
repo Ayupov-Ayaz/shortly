@@ -1,12 +1,12 @@
 CREATE TABLE IF NOT EXISTS urls (
     id BIGSERIAL PRIMARY KEY,
-    short_code VARCHAR(10) NOT NULL UNIQUE,
+    short_code VARCHAR(11) NOT NULL UNIQUE,
     original_url TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     expires_at TIMESTAMPTZ NOT NULL,
     active BOOLEAN NOT NULL DEFAULT TRUE, 
 
-    CONSTRAINT short_code_length CHECK (char_length(short_code) BETWEEN 3 AND 10)
+    CONSTRAINT short_code_length CHECK (char_length(short_code) BETWEEN 3 AND 11)
 );
 
 CREATE INDEX idx_urls_short_code ON urls(short_code);
