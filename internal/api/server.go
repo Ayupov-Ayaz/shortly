@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -14,8 +15,9 @@ import (
 )
 
 type Server struct {
-	router *chi.Mux
-	cfg    ServerConfig
+	router   *chi.Mux
+	pgxClose io.Closer
+	cfg      ServerConfig
 }
 
 type ServerConfig struct {
@@ -62,6 +64,14 @@ func (s *Server) Start() error {
 		return err
 	case <-stop:
 		s.gracefulShutdown(srv)
+
+		if s.pgxClose != nil {
+			log.Printf("closing postgres connection")
+			err := s.pgxClose.Close()
+			if err != nil {
+				log.Printf("error closing postgres connection: %v", err)
+			}
+		}
 	}
 
 	return nil
@@ -80,4 +90,8 @@ func (s *Server) gracefulShutdown(server *http.Server) {
 	}
 
 	log.Println("✅ server stopped gracefully")
+}
+
+func (s *Server) SetPostgresCloser(closer io.Closer) {
+	s.pgxClose = closer
 }

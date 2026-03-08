@@ -1,19 +1,19 @@
 package api
 
 import (
+	"context"
 	"fmt"
 
-	"github.com/go-chi/chi/v5"
-
 	"github.com/ayupov-ayaz/shortly/internal/config"
-	"github.com/ayupov-ayaz/shortly/internal/repository/stub"
+	"github.com/ayupov-ayaz/shortly/internal/helper/environment"
+	"github.com/ayupov-ayaz/shortly/internal/repository/postgres"
 	"github.com/ayupov-ayaz/shortly/internal/service/id"
 	"github.com/ayupov-ayaz/shortly/internal/service/shortener"
 	"github.com/ayupov-ayaz/shortly/internal/transport/rest/handler"
 )
 
 func Configure(
-	router chi.Router,
+	server *Server,
 	cfg *config.Config,
 ) error {
 	respWriter := handler.NewResponseWriter()
@@ -28,15 +28,48 @@ func Configure(
 		return fmt.Errorf("parsing base url: %w", err)
 	}
 
-	shortenerSrv := shortener.New(stub.NewInMemoryRepository(),
+	pgxPool, err := configurePostgres(cfg.Env, server, cfg.Postgres)
+	if err != nil {
+		return err
+	}
+
+	server.SetPostgresCloser(pgxPool)
+
+	urlsRepository := postgres.NewURLsRepository(pgxPool)
+
+	shortenerSrv := shortener.New(urlsRepository,
 		generator,
 		baseURL,
 		cfg.APP.ShortURLsTTL(),
 	)
 
-	configureShortener(respWriter, router, shortenerSrv)
-	configureLiveness(respWriter, router)
-	configureSwagger(respWriter, router)
+	configureShortener(respWriter, server.router, shortenerSrv)
+	configureLiveness(respWriter, server.router)
+	configureSwagger(respWriter, server.router)
 
 	return nil
+}
+
+func configurePostgres(
+	env environment.Env, server *Server, cfg config.Postgres,
+) (*postgres.ConnPool, error) {
+	ctx, cancel := context.WithTimeout(
+		context.Background(), cfg.ConnectTimeout)
+	defer cancel()
+
+	pgxPool, err := postgres.NewConnPool(ctx, postgres.Config{
+		Env:               env,
+		DSN:               cfg.DSN(),
+		MaxConns:          cfg.MaxConns,
+		MinConns:          cfg.MinConns,
+		MaxConnLifetime:   cfg.MaxConnLifetime,
+		MaxConnIdleTime:   cfg.MaxConnIdleTime,
+		HealthCheckPeriod: cfg.HealthCheckPeriod,
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("connection to postgres: %w", err)
+	}
+
+	return pgxPool, nil
 }

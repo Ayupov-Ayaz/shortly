@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/ayupov-ayaz/shortly/internal/config"
+	"github.com/ayupov-ayaz/shortly/internal/helper/environment"
 	"github.com/ayupov-ayaz/shortly/internal/transport/rest"
 )
 
@@ -30,7 +31,7 @@ func Run() error {
 		IdleTimeout:  cfg.Server.Timeout.Idle,
 	})
 
-	err = Configure(router, cfg)
+	err = Configure(server, cfg)
 	if err != nil {
 		return fmt.Errorf("configuring api: %w", err)
 	}
@@ -40,33 +41,41 @@ func Run() error {
 
 func readConfig() (*config.Config, error) {
 	env := parseEnvFlag()
-	envFileName := choseEnvFile(env)
+	envFileName, err := choseEnvFile(env)
+	if err != nil {
+		return nil, err
+	}
 
 	cfg, err := config.FromEnv(envFileName, prefix)
 	if err != nil {
 		return nil, fmt.Errorf("parsing env: %w", err)
 	}
 
+	cfg.Env = env
+
 	return cfg, nil
 }
 
-func parseEnvFlag() string {
+func parseEnvFlag() environment.Env {
 	env := flag.String("env", "development", "environment")
 	flag.Parse()
 
-	return *env
+	return environment.Env(*env)
 }
 
-func choseEnvFile(env string) string {
+func choseEnvFile(env environment.Env) (string, error) {
 	const (
 		devEnvFile  = ".env.development"
 		prodEnvFile = ".env.production"
 	)
 
-	switch env {
-	case config.EnvDevelopment:
-		return devEnvFile
-	default:
-		return prodEnvFile
+	if env.IsDevelopment() {
+		return devEnvFile, nil
 	}
+
+	if env.IsProduction() {
+		return prodEnvFile, nil
+	}
+
+	return "", fmt.Errorf("unknown environment: %s", env)
 }

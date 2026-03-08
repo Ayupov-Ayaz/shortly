@@ -7,8 +7,8 @@ import (
 )
 
 type Repository interface {
-	// save originalURL and shortURL during expire
-	Save(
+	// create originalURL and shortURL during expire
+	Create(
 		ctx context.Context,
 		req *gen.CreateURLResponse,
 	) error
@@ -23,8 +23,13 @@ type Repository interface {
 		originalURL string,
 	) (*gen.CreateURLResponse, error)
 	// delete url
-	Del(
+	Delete(
 		ctx context.Context,
 		shortURL string,
+	) error
+	//
+	Update(
+		ctx context.Context,
+		req *gen.CreateURLResponse,
 	) error
 }
