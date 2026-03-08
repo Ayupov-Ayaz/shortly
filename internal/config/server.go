@@ -3,6 +3,8 @@ package config
 import (
 	"fmt"
 	"net/url"
+
+	"github.com/ayupov-ayaz/shortly/internal/helper/environment"
 )
 
 type Server struct {
@@ -12,16 +14,11 @@ type Server struct {
 	Timeout      Timeout  `envPrefix:"TIMEOUT_"`
 }
 
-func (cfg Server) BaseURL(env string) (*url.URL, error) {
-	var scheme string
+func (cfg Server) BaseURL(env environment.Env) (*url.URL, error) {
+	scheme := "https"
 
-	switch env {
-	case EnvDevelopment:
+	if env.IsDevelopment() {
 		scheme = "http"
-	case EnvProduction:
-		scheme = "https"
-	default:
-		return nil, fmt.Errorf("invalid environment: %s", env)
 	}
 
 	baseURL, err := url.Parse(
