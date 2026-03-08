@@ -20,5 +20,5 @@ func NewSnowflakeGenerator(nodeID int64) (*SnowflakeGenerator, error) {
 }
 
 func (g *SnowflakeGenerator) Generate() string {
-	return ToBase64(g.node.Generate().Int64())
+	return ToBase62(g.node.Generate().Int64())
 }

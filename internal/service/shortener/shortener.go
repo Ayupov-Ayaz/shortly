@@ -57,19 +57,21 @@ func (u *URLShortener) ShortenURL(
 		return resp, nil
 	}
 
-	shortURL := u.baseURL.JoinPath(u.generator.Generate())
+	shortCode := u.generator.Generate()
 
 	res := &gen.CreateURLResponse{
 		CreatedAt:   time.Now(),
 		ExpiresAt:   req.ExpiresAt,
 		OriginalURL: req.Url,
-		ShortURL:    shortURL.String(),
+		ShortURL:    shortCode,
 	}
 
-	err = u.storage.Save(ctx, res)
+	// todo: use entity
+	err = u.storage.Create(ctx, res)
 	if err != nil {
 		return nil, err
 	}
 
+	// todo: join base url and short code
 	return res, nil
 }

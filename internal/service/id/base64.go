@@ -13,7 +13,7 @@ const (
 	notFoundIndex = -1
 )
 
-func ToBase64(num int64) string {
+func ToBase62(num int64) string {
 	if num == 0 {
 		return zero
 	}
@@ -29,7 +29,7 @@ func ToBase64(num int64) string {
 	return string(reverseBytes(result))
 }
 
-func FromBase64(str string) (int64, error) {
+func FromBase62(str string) (int64, error) {
 	var result int64
 
 	for _, char := range str { //todo: check with strings.IndexByte ?
